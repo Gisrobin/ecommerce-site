@@ -1,6 +1,20 @@
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { FaShoppingCart, FaHome } from "react-icons/fa";
+
+// Add Google Fonts import to the <head> using a side effect
+import { useEffect as useHeadEffect } from "react";
+function GoogleFonts() {
+  useHeadEffect(() => {
+    const link = document.createElement("link");
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Merriweather:wght@400;700&display=swap";
+    link.rel = "stylesheet";
+    document.head.appendChild(link);
+    return () => document.head.removeChild(link);
+  }, []);
+  return null;
+}
 
 // Add at least 20 TV and Phone products to your local products array
 const products = [
@@ -365,26 +379,53 @@ function Home({ addToCart }) {
     <div style={{ background: "linear-gradient(to bottom, #f3f4f6, #ffffff)", minHeight: "100vh", padding: "24px", paddingTop: "120px" }}>
       <h1
         style={{
-          fontSize: "48px",
-          fontWeight: "bold",
+          fontSize: "44px",
+          fontWeight: 700,
           textAlign: "center",
-          color: "#0ea5e9",
+          color: "#22223b", // matured dark blue-grey
           marginBottom: "32px",
-          letterSpacing: "2px",
-          textShadow: "2px 2px 8px #bae6fd, 0 4px 24px #38bdf8",
-          fontFamily: "'Pacifico', cursive, 'Segoe UI', sans-serif"
+          letterSpacing: "1.5px",
+          textShadow: "0 2px 8px #e9ecef",
+          fontFamily: "'Merriweather', serif",
+          transition: "color 0.3s"
         }}
       >
         <span style={{
-          background: "linear-gradient(90deg, #0ea5e9, #6366f1, #f472b6)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
+          background: "none",
+          color: "#4a4e69", // matured accent
           display: "inline-block",
           padding: "0 16px",
           borderRadius: "16px",
-          boxShadow: "0 2px 16px #bae6fd"
+          fontFamily: "'Merriweather', serif",
+          fontWeight: 700,
+          transition: "color 0.3s"
         }}>
-          Welcome to <span style={{ color: "#f472b6", fontWeight: "900", letterSpacing: "4px", fontSize: "56px", textShadow: "0 2px 12px #f472b6" }}>Robin's Store</span>
+          Welcome to{" "}
+          <span
+            style={{
+              color: "#22223b",
+              fontWeight: "900",
+              letterSpacing: "3px",
+              fontSize: "52px",
+              textShadow: "0 2px 12px #c9ada7",
+              fontFamily: "'Merriweather', serif",
+              transition: "color 0.3s"
+            }}
+          >
+            {`Robin's Store`}
+          </span>
+          <span
+            style={{
+              display: "block",
+              fontSize: "20px",
+              color: "#4a4e69",
+              fontWeight: 400,
+              marginTop: "8px",
+              fontFamily: "'Lato', 'Merriweather', serif"
+            }}
+          >
+            {`Find the best products for you! (${filteredProducts.length} products available)`}
+          </span>
         </span>
       </h1>
 
@@ -421,137 +462,103 @@ function Home({ addToCart }) {
   );
 }
 
-export default function App() {
-  const [cart, setCart] = useState([]);
+function CheckoutPage({ cart, totalAmount, onOrderPlaced }) {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [placing, setPlacing] = useState(false);
 
-  const addToCart = (product) => {
-    setCart(prevCart => {
-      const isProductInCart = prevCart.find(item => item.id === product.id);
-      if (isProductInCart) {
-        return prevCart.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prevCart, { ...product, quantity: 1 }];
-    });
+  const handleCheckout = (e) => {
+    e.preventDefault();
+    setPlacing(true);
+    setTimeout(() => {
+      setPlacing(false);
+      onOrderPlaced();
+      navigate("/cart");
+    }, 1800);
   };
 
+  if (!cart.length) {
+    return (
+      <div style={{ maxWidth: 500, margin: "60px auto", padding: 32, borderRadius: 16, background: "#fff", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+        <h2 style={{ textAlign: "center", color: "#4a4e69", fontFamily: "'Merriweather', serif" }}>No items in cart</h2>
+        <div style={{ textAlign: "center", marginTop: 24 }}>
+          <Link to="/" style={{ color: "#2563eb", textDecoration: "underline" }}>Go to Home</Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Router>
-      <div>
-        <header
+    <div style={{ maxWidth: 500, margin: "60px auto", padding: 32, borderRadius: 16, background: "#fff", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+      <h2 style={{ textAlign: "center", color: "#4a4e69", fontFamily: "'Merriweather', serif", marginBottom: 24 }}>Checkout</h2>
+      <form onSubmit={handleCheckout}>
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ fontWeight: 600, color: "#22223b", fontFamily: "'Lato', 'Merriweather', serif" }}>Name</label>
+          <input
+            required
+            value={name}
+            onChange={e => setName(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #d1d5db",
+              marginTop: "6px",
+              fontSize: "16px",
+              fontFamily: "'Lato', 'Merriweather', serif"
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: 18 }}>
+          <label style={{ fontWeight: 600, color: "#22223b", fontFamily: "'Lato', 'Merriweather', serif" }}>Address</label>
+          <textarea
+            required
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            rows={3}
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #d1d5db",
+              marginTop: "6px",
+              fontSize: "16px",
+              fontFamily: "'Lato', 'Merriweather', serif"
+            }}
+          />
+        </div>
+        <div style={{ marginBottom: 18, fontWeight: 600, color: "#4a4e69" }}>
+          Total: <span style={{ color: "#2563eb" }}>${totalAmount}</span>
+        </div>
+        <button
+          type="submit"
+          disabled={placing}
           style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            padding: "0",
-            background: "linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%)",
-            boxShadow: "0 2px 16px rgba(56,189,248,0.10)",
-            zIndex: 1000
+            width: "100%",
+            padding: "12px",
+            borderRadius: "10px",
+            background: "#4a4e69",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "18px",
+            border: "none",
+            cursor: placing ? "not-allowed" : "pointer",
+            opacity: placing ? 0.7 : 1,
+            fontFamily: "'Lato', 'Merriweather', serif"
           }}
         >
-          <nav
-            style={{
-              maxWidth: "1200px",
-              margin: "0 auto",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "18px 32px",
-              borderRadius: "0 0 24px 24px",
-              boxShadow: "0 4px 24px #bae6fd"
-            }}
-          >
-            <Link
-              to="/"
-              style={{
-                textDecoration: "none",
-                color: "#fff",
-                fontSize: "32px",
-                fontWeight: "bold",
-                letterSpacing: "2px",
-                fontFamily: "'Pacifico', cursive, 'Segoe UI', sans-serif",
-                textShadow: "0 2px 12px #38bdf8"
-              }}
-            >
-              <span style={{
-                background: "linear-gradient(90deg, #fff 30%, #f472b6 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                fontWeight: 900,
-                fontSize: "36px"
-              }}>
-                Robin's Store
-              </span>
-            </Link>
-            <div style={{ display: "flex", gap: "24px" }}>
-              <Link
-                to="/"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  textDecoration: "none",
-                  color: "#fff",
-                  fontWeight: "600",
-                  fontSize: "18px",
-                  padding: "8px 18px",
-                  borderRadius: "9999px",
-                  background: "rgba(255,255,255,0.08)",
-                  transition: "background 0.2s",
-                  boxShadow: "0 2px 8px rgba(56,189,248,0.10)"
-                }}
-              >
-                <FaHome style={{ verticalAlign: "middle" }} />
-                Home
-              </Link>
-              <Link
-                to="/cart"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  textDecoration: "none",
-                  color: "#fff",
-                  fontWeight: "600",
-                  fontSize: "18px",
-                  padding: "8px 18px",
-                  borderRadius: "9999px",
-                  background: "rgba(255,255,255,0.08)",
-                  transition: "background 0.2s",
-                  boxShadow: "0 2px 8px rgba(56,189,248,0.10)"
-                }}
-              >
-                <FaShoppingCart style={{ verticalAlign: "middle" }} />
-                Cart <span style={{
-                  background: "#f472b6",
-                  color: "#fff",
-                  borderRadius: "9999px",
-                  padding: "2px 10px",
-                  fontWeight: "bold",
-                  fontSize: "15px",
-                  marginLeft: "2px"
-                }}>{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
-              </Link>
-            </div>
-          </nav>
-        </header>
-
-        <main style={{ paddingTop: "100px" }}>
-          <Routes>
-            <Route path="/" element={<Home addToCart={addToCart} />} />
-            <Route path="/cart" element={<CartPage cart={cart} />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+          {placing ? "Placing Order..." : "Place Order"}
+        </button>
+      </form>
+    </div>
   );
 }
 
-function CartPage({ cart }) {
+function CartPage({ cart, setCart }) {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [, setForceUpdate] = useState(0); // For forcing re-render after delete
+  const navigate = useNavigate();
 
   const totalAmount = cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2);
 
@@ -571,6 +578,28 @@ function CartPage({ cart }) {
       cart.splice(idx, 1);
       setForceUpdate(n => n + 1); // Force re-render
     }
+  };
+
+  // Increase quantity
+  const handleIncrease = (id) => {
+    const idx = cart.findIndex(item => item.id === id);
+    if (idx !== -1) {
+      cart[idx].quantity += 1;
+      setForceUpdate(n => n + 1);
+    }
+  };
+
+  // Decrease quantity
+  const handleDecrease = (id) => {
+    const idx = cart.findIndex(item => item.id === id);
+    if (idx !== -1 && cart[idx].quantity > 1) {
+      cart[idx].quantity -= 1;
+      setForceUpdate(n => n + 1);
+    }
+  };
+
+  const handleCheckout = () => {
+    navigate("/checkout");
   };
 
   return (
@@ -597,14 +626,43 @@ function CartPage({ cart }) {
                 </div>
                 <div style={{ textAlign: "right" }}>
                   <p style={{ fontSize: "18px", fontWeight: "500", margin: "0 0 4px 0", color: "#2563eb" }}>${item.price.toFixed(2)}</p>
-                  <p style={{ fontSize: "16px", margin: "0", color: "#6b7280" }}>Quantity: {item.quantity}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => handleDecrease(item.id)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "6px",
+                        background: "#e0e7ff",
+                        color: "#2563eb",
+                        border: "none",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        cursor: item.quantity === 1 ? "not-allowed" : "pointer"
+                      }}
+                      disabled={item.quantity === 1}
+                    >-</button>
+                    <span style={{ minWidth: "24px", textAlign: "center" }}>{item.quantity}</span>
+                    <button
+                      onClick={() => handleIncrease(item.id)}
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "6px",
+                        background: "#e0e7ff",
+                        color: "#2563eb",
+                        border: "none",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        cursor: "pointer"
+                      }}
+                    >+</button>
+                  </div>
                   <button
                     onClick={() => handleDelete(item.id)}
                     style={{
                       marginTop: "8px",
                       padding: "6px 14px",
                       borderRadius: "8px",
-                      background: "#f472b6",
+                      background: "#4a4e69", // matured color
                       color: "#fff",
                       border: "none",
                       fontWeight: "500",
@@ -624,27 +682,215 @@ function CartPage({ cart }) {
               Total Amount:{" "}
               <span style={{ color: "#2563eb", fontWeight: "600" }}>${totalAmount}</span>
             </h2>
-            <button
-              onClick={handlePlaceOrder}
-              disabled={orderPlaced}
-              style={{
-                padding: "12px 24px",
-                borderRadius: "12px",
-                fontWeight: "500",
-                backgroundColor: "#2563eb",
-                color: "white",
-                border: "none",
-                cursor: orderPlaced ? "not-allowed" : "pointer",
-                opacity: orderPlaced ? 0.7 : 1,
-                transition: "background-color 0.2s",
-                boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
-              }}
-            >
-              {orderPlaced ? "Order Placed!" : "Place Order"}
-            </button>
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button
+                onClick={handleCheckout}
+                style={{
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontWeight: "500",
+                  backgroundColor: "#4a4e69",
+                  color: "white",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "16px",
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.12)"
+                }}
+              >
+                Checkout
+              </button>
+              <button
+                onClick={handlePlaceOrder}
+                disabled={orderPlaced}
+                style={{
+                  padding: "12px 24px",
+                  borderRadius: "12px",
+                  fontWeight: "500",
+                  backgroundColor: "#2563eb",
+                  color: "white",
+                  border: "none",
+                  cursor: orderPlaced ? "not-allowed" : "pointer",
+                  opacity: orderPlaced ? 0.7 : 1,
+                  transition: "background-color 0.2s",
+                  boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
+                }}
+              >
+                {orderPlaced ? "Order Placed!" : "Place Order"}
+              </button>
+            </div>
           </div>
         </>
       )}
     </div>
+  );
+}
+
+// --- Update App to pass setCart to CartPage and add CheckoutPage route ---
+export default function App() {
+  const [cart, setCart] = useState([]);
+
+  const addToCart = (product) => {
+    setCart(prevCart => {
+      const isProductInCart = prevCart.find(item => item.id === product.id);
+      if (isProductInCart) {
+        return prevCart.map(item =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
+  };
+
+  // Clear cart after order placed from checkout
+  const handleOrderPlaced = () => setCart([]);
+
+  return (
+    <Router>
+      <GoogleFonts />
+      <div>
+        <header
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: 0,
+            background: "#18181b",
+            boxShadow: "0 2px 16px rgba(24,24,27,0.10)",
+            zIndex: 1000,
+            fontFamily: "'Lato', 'Merriweather', Arial, sans-serif"
+          }}
+        >
+          <nav
+            style={{
+              maxWidth: "1200px",
+              margin: "0 auto",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px 32px",
+              borderRadius: "0 0 18px 18px",
+              boxShadow: "0 4px 24px #27272a",
+              background: `
+                linear-gradient(rgba(24,24,27,0.92), rgba(24,24,27,0.92)),
+                url('https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=1200&q=80')
+              `,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              fontFamily: "'Lato', 'Merriweather', Arial, sans-serif"
+            }}
+          >
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none",
+                color: "#4a4e69",
+                fontSize: "2rem",
+                fontWeight: 900,
+                letterSpacing: "1.5px",
+                fontFamily: "'Merriweather', 'Lato', Arial, sans-serif",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px"
+              }}
+            >
+              {/* Logo image */}
+              <img
+                src="https://cdn-icons-png.flaticon.com/512/891/891462.png"
+                alt="Store Logo"
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  borderRadius: "12px",
+                  background: "#fff",
+                  boxShadow: "0 2px 8px rgba(74,78,105,0.10)",
+                  objectFit: "cover"
+                }}
+              />
+              <span style={{
+                background: "linear-gradient(90deg, #4a4e69 0%, #6366f1 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: 900,
+                fontSize: "2.2rem",
+                fontFamily: "'Merriweather', 'Lato', Arial, sans-serif"
+              }}>
+                Robin's Store
+              </span>
+            </Link>
+            <div style={{ display: "flex", gap: "18px" }}>
+              <Link
+                to="/"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  textDecoration: "none",
+                  color: "#e0e7ef",
+                  fontWeight: 600,
+                  fontSize: "1.1rem",
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  background: "rgba(39,39,42,0.7)",
+                  transition: "background 0.2s, color 0.2s",
+                  fontFamily: "'Lato', 'Merriweather', Arial, sans-serif",
+                  border: "1px solid #27272a"
+                }}
+              >
+                <FaHome style={{ verticalAlign: "middle" }} />
+                Home
+              </Link>
+              <Link
+                to="/cart"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  textDecoration: "none",
+                  color: "#e0e7ef",
+                  fontWeight: 600,
+                  fontSize: "1.1rem",
+                  padding: "8px 20px",
+                  borderRadius: "8px",
+                  background: "rgba(39,39,42,0.7)",
+                  transition: "background 0.2s, color 0.2s",
+                  fontFamily: "'Lato', 'Merriweather', Arial, sans-serif",
+                  border: "1px solid #27272a"
+                }}
+              >
+                <FaShoppingCart style={{ verticalAlign: "middle" }} />
+                Cart <span style={{
+                  background: "#4a4e69",
+                  color: "#fff",
+                  borderRadius: "9999px",
+                  padding: "2px 10px",
+                  fontWeight: "bold",
+                  fontSize: "1rem",
+                  marginLeft: "2px",
+                  fontFamily: "'Lato', 'Merriweather', Arial, sans-serif"
+                }}>{cart.reduce((acc, item) => acc + item.quantity, 0)}</span>
+              </Link>
+            </div>
+          </nav>
+        </header>
+
+        <main style={{ paddingTop: "100px", fontFamily: "'Lato', 'Merriweather', Arial, sans-serif" }}>
+          <Routes>
+            <Route path="/" element={<Home addToCart={addToCart} />} />
+            <Route path="/cart" element={<CartPage cart={cart} setCart={setCart} />} />
+            <Route
+              path="/checkout"
+              element={
+                <CheckoutPage
+                  cart={cart}
+                  totalAmount={cart.reduce((acc, item) => acc + item.price * item.quantity, 0).toFixed(2)}
+                  onOrderPlaced={handleOrderPlaced}
+                />
+              }
+            />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
